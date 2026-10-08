@@ -7,6 +7,7 @@ import (
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 
+	"main/browser"
 	_ "main/docs"
 )
 
@@ -19,38 +20,38 @@ func main() {
 	router := gin.Default()
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-
-	router.GET("/blog", getting)
-	router.POST("/blog", posting)
-
 	err := router.Run()
 	if err != nil {
 		return
 	}
-}
 
-// getting godoc
-// @Summary Get blog
-// @Description Get blog information
-// @Tags blog
-// @Produce json
-// @Success 200 {object} map[string]string
-// @Router /blog [get]
-func getting(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Getting the blog through the GET method",
-	})
-}
+	// The browser will bw available in "/" endpoint and ready for use
+	browser, err := browser.NewManager()
+	if err != nil {
+		panic(err)
+	}
+	defer browser.Close()
 
-// posting godoc
-// @Summary Create blog
-// @Description Create a blog post
-// @Tags blog
-// @Produce json
-// @Success 200 {object} map[string]string
-// @Router /blog [post]
-func posting(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Posting the blog through POST method",
+	router.GET("/", func(c *gin.Context) {
+		page, err := browser.Navigate("https://www.google.com")
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		defer page.Close()
+
+		content, err := page.Content()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(content))
 	})
+
+	err = router.Run(":8080")
+	if err != nil {
+		panic(err)
+	}
+
+
 }
