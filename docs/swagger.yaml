@@ -1,0 +1,38 @@
+basePath: /
+host: localhost:8080
+info:
+  contact: {}
+  description: API for managing blog posts.
+  title: Blog API
+  version: "1.0"
+paths:
+  /blog:
+    get:
+      description: Get blog information
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get blog
+      tags:
+      - blog
+    post:
+      description: Create a blog post
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create blog
+      tags:
+      - blog
+swagger: "2.0"
